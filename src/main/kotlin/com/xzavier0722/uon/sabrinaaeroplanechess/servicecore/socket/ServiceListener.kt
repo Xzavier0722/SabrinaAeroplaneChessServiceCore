@@ -14,8 +14,9 @@ abstract class ServiceListener(port: Int) {
     }
 
     private fun onReceive(packet: DatagramPacket) {
-        val info = InetPointInfo.get(packet).toString()
-        var handlingPacket = processingPackets[info]
+        val info = InetPointInfo.get(packet)
+        val infoStr = info.toString()
+        var handlingPacket = processingPackets[infoStr]
         val data = packet.data
 
         if (handlingPacket == null) {
@@ -26,37 +27,63 @@ abstract class ServiceListener(port: Int) {
             if (identifier == 0x48.toByte()) {
                 val len = data[1].toInt()
                 if (len == 1) {
-                    onReceive(handlingPacket.packet)
+                    onReceive(info ,handlingPacket.packet)
                     return
                 }
             }
-            processingPackets[info] = handlingPacket
+            processingPackets[infoStr] = handlingPacket
         } else {
             handlingPacket.accept(data)
             if (handlingPacket.isCompleted) {
                 onReceive(handlingPacket.packet)
-                processingPackets.remove(info)
+                processingPackets.remove(infoStr)
             }
         }
-
 
     }
 
     private fun onReceive(info: InetPointInfo, packet: Packet) {
+        val request = packet.request
+        when (request) {
+            Request.CONFIRM -> {
+                processingPackets.remove(info.toString())
+                return
+            }
+            Request.RESEND -> {
+                val handlingPacket = processingPackets[info.toString()]
+                if (handlingPacket == null) {
+                    send(info, PacketUtils.getErrorPacket(packet))
+                } else {
+                    val rePacket = handlingPacket.getDatagramPacket(packet.data.toInt(), info)
+                    if (rePacket.isPresent) {
+                        point.send(rePacket.get())
+                    } else {
+                        send(info, PacketUtils.getErrorPacket(packet))
+                    }
+                }
+                return
+            }
+            else -> {}
+        }
+
         onReceive(packet)
         // Send confirm
-        if (packet.request.requireConfirm()) {
+        if (request.requireConfirm()) {
             send(info, PacketUtils.getConfirmPacket(packet))
         }
     }
 
     fun send(info: InetPointInfo, packet: Packet) {
-        packet.sequence = seq++;
+        packet.sequence = seq++
         packet.timestamp = System.currentTimeMillis()
         val handlingPacket = HandlingDatagramPacket.getFor(packet)
 
         for (i in 0 until handlingPacket.sliceCount) {
             point.send(handlingPacket.getDatagramPacket(i, info).get())
+        }
+
+        if (packet.request.requireConfirm()) {
+            processingPackets[info.toString()] = handlingPacket
         }
     }
 
