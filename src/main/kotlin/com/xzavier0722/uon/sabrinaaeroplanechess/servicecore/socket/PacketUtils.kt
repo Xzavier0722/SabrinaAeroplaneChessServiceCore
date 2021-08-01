@@ -33,8 +33,7 @@ object PacketUtils {
     }
 
     fun getGameRoomUpdatePacket(session: Session, isRemove: Boolean) : Packet {
-        val player = session.playerProfile
-        val data = if (isRemove) "remove,"+player.uuid.toString() else "add,"+player.uuid.toString()+","+Utils.base64(player.name)+","+player.playCount+","+player.wins
+        val data = (if (isRemove) "remove," else "add,") + Utils.base64(Utils.getGson().toJson(session.playerProfile))
 
         val re = Packet()
         re.request = Request.GAME_ROOM
