@@ -5,7 +5,7 @@ import java.net.DatagramPacket
 
 abstract class ServiceListener(port: Int) {
 
-    protected val point: SocketPoint = SocketPoint(port) { onReceive(it) }
+    private val point: SocketPoint = SocketPoint(port) { onReceive(it) }
     private val processingPackets = HashMap<String, HandlingDatagramPacket>()
     @Volatile private var seq = 0
 
@@ -20,7 +20,7 @@ abstract class ServiceListener(port: Int) {
         val data = packet.data
 
         if (handlingPacket == null) {
-            // New income,
+            // New income
             handlingPacket = HandlingDatagramPacket()
             handlingPacket.accept(data)
             val identifier = data[0]
@@ -65,7 +65,7 @@ abstract class ServiceListener(port: Int) {
             else -> {}
         }
 
-        onReceive(packet)
+        onReceive(packet, info)
         // Send confirm
         if (request.requireConfirm()) {
             send(info, PacketUtils.getConfirmPacket(packet))
@@ -86,7 +86,7 @@ abstract class ServiceListener(port: Int) {
         }
     }
 
-    abstract fun onReceive(packet: Packet)
+    abstract fun onReceive(packet: Packet, info: InetPointInfo)
 
     fun abort() = point.abort()
 
