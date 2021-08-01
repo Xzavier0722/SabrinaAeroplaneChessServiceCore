@@ -8,16 +8,26 @@ import com.xzavier0722.uon.sabrinaaeroplanechess.servicecore.socket.LoginService
 
 val SessionManager = SessionManager()
 val DataStorage = DataStorage(SQLiteSource("data","SabrinaAeroplane.db"))
-val LoginServiceListener = LoginServiceListener()
-val GameServiceListener = GameServiceListener()
+lateinit var LoginServiceListener: LoginServiceListener
+lateinit var GameServiceListener: GameServiceListener
 @Volatile var PacketId = 0
 
 fun main() {
 
-}
+    println("Starting login service at 7220")
+    LoginServiceListener = LoginServiceListener()
 
-class Startup {
+    println("Starting game service at 7221")
+    GameServiceListener = GameServiceListener()
 
-
-
+    println("Services started. Use /end to stop")
+    while (true) {
+        val input = readLine()
+        if (input == "/end") {
+            println("Stopping services")
+            LoginServiceListener.abort()
+            GameServiceListener.abort()
+            return
+        }
+    }
 }
