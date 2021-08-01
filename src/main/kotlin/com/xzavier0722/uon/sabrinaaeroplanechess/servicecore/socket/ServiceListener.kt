@@ -35,8 +35,7 @@ abstract class ServiceListener(port: Int) {
         } else {
             handlingPacket.accept(data)
             if (handlingPacket.isCompleted) {
-                onReceive(handlingPacket.packet)
-                processingPackets.remove(infoStr)
+                onReceive(info, handlingPacket.packet)
             }
         }
 

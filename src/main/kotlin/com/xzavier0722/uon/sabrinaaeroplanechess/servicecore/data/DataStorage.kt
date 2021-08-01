@@ -1,9 +1,10 @@
 package com.xzavier0722.uon.sabrinaaeroplanechess.servicecore.data
 
-object DataStorage {
+import com.xzavier0722.uon.sabrinaaeroplanechess.common.game.PlayerProfile
 
-    lateinit var dataSource: DataSource
+class DataStorage(private val dataSource: DataSource) {
 
+    private val playerProfiles = HashMap<String, PlayerProfile>()
 
 
 }
