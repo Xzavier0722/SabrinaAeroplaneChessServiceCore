@@ -35,6 +35,8 @@ class LoginServiceListener: ServiceListener(7220) {
                         session.playerProfile = DataStorage.getPlayerProfileByName(name).get()
                         session.inetPoint = info
 
+                        println("Player "+session.playerProfile.uuid+" login successful")
+
                         // Create reply packet
                         val replyPacket = PacketUtils.getReplyPacketFor(packet)
                         replyPacket.sign = Utils.getSign(session.key)
@@ -59,6 +61,7 @@ class LoginServiceListener: ServiceListener(7220) {
                         val profile = PlayerProfile(userInfo[0])
                         DataStorage.register(profile, userInfo[1])
 
+                        println("Player "+profile.uuid+" register successful")
                         // Create reply packet
                         val replyPacket = PacketUtils.getReplyPacketFor(packet)
                         replyPacket.data = profile.uuid.toString()

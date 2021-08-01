@@ -42,6 +42,7 @@ abstract class ServiceListener(port: Int) {
     }
 
     private fun onReceive(info: InetPointInfo, packet: Packet) {
+        println("Received packet "+packet.id)
         val request = packet.request
         when (request) {
             Request.CONFIRM -> {
@@ -73,6 +74,7 @@ abstract class ServiceListener(port: Int) {
     }
 
     fun send(info: InetPointInfo, packet: Packet) {
+        println("Packet sent "+packet.id)
         packet.sequence = seq++
         packet.timestamp = System.currentTimeMillis()
         val handlingPacket = HandlingDatagramPacket.getFor(packet)
