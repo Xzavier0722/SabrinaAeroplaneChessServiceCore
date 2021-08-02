@@ -6,8 +6,9 @@ import com.xzavier0722.uon.sabrinaaeroplanechess.servicecore.data.DataStorage
 import com.xzavier0722.uon.sabrinaaeroplanechess.servicecore.socket.GameServiceListener
 import com.xzavier0722.uon.sabrinaaeroplanechess.servicecore.socket.LoginServiceListener
 
+private val SQLiteSource = SQLiteSource("data","SabrinaAeroplane.db")
 val SessionManager = SessionManager()
-val DataStorage = DataStorage(SQLiteSource("data","SabrinaAeroplane.db"))
+val DataStorage = DataStorage(SQLiteSource)
 lateinit var LoginServiceListener: LoginServiceListener
 lateinit var GameServiceListener: GameServiceListener
 @Volatile var PacketId = 0
@@ -27,6 +28,7 @@ fun main() {
             println("Stopping services")
             LoginServiceListener.abort()
             GameServiceListener.abort()
+            SQLiteSource.abort()
             return
         }
     }

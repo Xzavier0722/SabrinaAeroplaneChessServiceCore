@@ -119,14 +119,14 @@
         <dependency>
             <groupId>com.github.Xzavier0722</groupId>
             <artifactId>SabrinaCommonLib</artifactId>
-            <version>c5a46953d0e0c8492ece75b01228497cd9112046</version>
+            <version>09f31873c4ba83b417692201f238e659c0b20350</version>
             <scope>compile</scope>
         </dependency>
 
         <dependency>
             <groupId>org.xerial</groupId>
             <artifactId>sqlite-jdbc</artifactId>
-            <version>3.34.0</version>
+            <version>3.36.0.1</version>
         </dependency>
     </dependencies>
 
