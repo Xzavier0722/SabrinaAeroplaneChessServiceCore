@@ -26,6 +26,11 @@ class GameServiceListener : ServiceListener(7221){
         }
 
         val session = sessionOpt.get()
+        // Check if session information should update
+        if (session.inetPoint.toString() != info.toString()) {
+            session.inetPoint = info
+        }
+
         val data = session.aes.decrypt(packet.data)
 
         // Check data
