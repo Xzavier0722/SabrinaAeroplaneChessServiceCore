@@ -43,7 +43,7 @@ class GameServiceListener : ServiceListener(7221){
             Request.GAME_ROOM -> {
                 /**
                  * Game room related:
-                 * Data format: "create/join/leave/start/kick,room code,other data (if have)"
+                 * Data format: "create/join/leave/start/kick,other data (if have)"
                  */
                 val request = data.split(",")
                 when (request[0]) {
@@ -89,10 +89,11 @@ class GameServiceListener : ServiceListener(7221){
                     "leave" -> {
                         /**
                          * Leave room request:
-                         * 1. Client sends leave request with data formatted by: "leave,room code"
+                         * 1. Client sends leave request with data formatted by: "leave"
                          * 2. Server sends a game room update packet to all room members
                          */
-                        val room = gameRooms[request[1]]
+                        val roomId = GameRoom.getRoomCode(session.id)
+                        val room = gameRooms[roomId?:"NULL"]
                         if (room != null) {
                             println("Player "+session.playerProfile.uuid+" leaved room "+room.code)
                             if (room.removePlayer(session)) {
@@ -106,10 +107,11 @@ class GameServiceListener : ServiceListener(7221){
                     "start" -> {
                         /**
                          * Start game request:
-                         * 1. Room owner send start request with data formatted: "start,room code,uuids order by flag"
+                         * 1. Room owner send start request with data formatted: "start,uuids order by flag"
                          * 2. Server send game start packet to all room members
                          */
-                        val room = gameRooms[request[1]]
+                        val roomId = GameRoom.getRoomCode(session.id)
+                        val room = gameRooms[roomId?:"NULL"]
                         if (room != null && session.id == room.owner) {
                             println("Room "+room.code+" started game")
                             room.sendToAll("start,"+request[2])
@@ -119,10 +121,11 @@ class GameServiceListener : ServiceListener(7221){
                     "kick" -> {
                         /**
                          * Kick player request:
-                         * 1. Room owner send kick request with data formatted: "kick,room code,kicked uuid"
+                         * 1. Room owner send kick request with data formatted: "kick,kicked uuid"
                          * 2. Server send kick packet with data "kick,uuid" to all room members
                          */
-                        val room = gameRooms[request[1]]
+                        val roomId = GameRoom.getRoomCode(session.id)
+                        val room = gameRooms[roomId?:"NULL"]
                         if (room != null && session.id == room.owner) {
                             println("Player "+session.playerProfile.uuid+" kicked room "+room.code)
                             room.sendToAll("kick,"+request[2])
@@ -135,17 +138,18 @@ class GameServiceListener : ServiceListener(7221){
             Request.GAME_PROCESS -> {
                 /**
                  * Game process related:
-                 * The turn operator send request to server "turnStart/pieceSelected/gameEnd,room code"
+                 * The turn operator send request to server "turnStart/pieceSelected/gameEnd"
                  * TODO: Timer and timeout
                  */
                 val request = data.split(",")
-                val room = gameRooms[request[1]]
+                val roomId = GameRoom.getRoomCode(session.id)
+                val room = gameRooms[roomId?:"NULL"]
                 if (room != null) {
                     when (request[0]) {
                         "turnStart" -> {
                             /**
                              * Turn start request:
-                             * 1. Client sends turn start request with data "turnStart,room code"
+                             * 1. Client sends turn start request with data "turnStart"
                              * 2. Server sends "turnStart,dice number" to all room members
                              */
                             println("Room "+room.code+" turn start")
@@ -155,21 +159,21 @@ class GameServiceListener : ServiceListener(7221){
                         "pieceSelected" -> {
                             /**
                              * Turn start request:
-                             * 1. Client sends turn start request with data "pieceSelected,room code,piece id"
+                             * 1. Client sends turn start request with data "pieceSelected,piece id"
                              * 2. Server sends "turnStart,dice number" to all room members
                              */
-                            println("Player "+session.playerProfile.uuid+" piece selected "+request[2])
-                            room.sendProcess(session, "selectedPiece,"+request[2])
+                            println("Player "+session.playerProfile.uuid+" piece selected "+request[1])
+                            room.sendProcess(session, "selectedPiece,"+request[1])
                             return
                         }
                         "gameEnd" -> {
                             /**
                              * Turn start request:
-                             * 1. Client sends turn start request with data "turnStart,room code"
+                             * 1. Client sends turn start request with data "turnStart"
                              * 2. Server will not reply anything
                              */
                             println("Room "+room.code+" game ended")
-                            gameRooms.remove(request[1])
+                            gameRooms.remove(roomId)
                             return
                         }
                     }

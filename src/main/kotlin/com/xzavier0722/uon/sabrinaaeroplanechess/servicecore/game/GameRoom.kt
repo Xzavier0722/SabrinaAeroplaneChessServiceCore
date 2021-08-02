@@ -18,6 +18,14 @@ class GameRoom(val code: String) {
     lateinit var owner: String
     private val random = Random()
 
+    companion object {
+        private val cache = HashMap<String, String>()
+
+        fun getRoomCode(sessionId: String) : String? {
+            return cache[sessionId]
+        }
+    }
+
     fun addPlayer(session: Session) : Boolean {
         if (players.isEmpty()) {
             owner = session.id
@@ -31,15 +39,20 @@ class GameRoom(val code: String) {
             GameServiceListener.send(it.inetPoint, packet)
         }
         players[session.id] = session
+        cache[session.id] = code
         return true
     }
 
     fun removePlayer(session: Session) : Boolean{
         if (session.id == owner) {
             players.remove(owner)
+            players.keys.forEach {
+                cache.remove(it)
+            }
             return true
         }
         val removed = players.remove(session.id)
+        cache.remove(session.id)
         if (removed != null && players.size > 0) {
             players.values.forEach {
                 val packet = PacketUtils.getGameRoomUpdatePacket(removed, true)
@@ -58,7 +71,12 @@ class GameRoom(val code: String) {
         return re
     }
 
-    fun kickAll() = sendToAll("kick")
+    fun kickAll(){
+        players.keys.forEach {
+            cache.remove(it)
+        }
+        sendToAll("kick")
+    }
 
     fun sendToAll(data: String) {
         players.values.forEach {
