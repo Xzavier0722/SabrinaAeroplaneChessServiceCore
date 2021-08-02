@@ -20,7 +20,7 @@ class LoginServiceListener: ServiceListener(7220) {
                  * 1. Client send a packet using AES sha256(password) encrypt "Login" in data and base64(Name) in sessionId
                  * 2. Server use stored user key (which is sha256(password)) to decrypt data and check if "Login"
                  * 3. If success, server create session, and reply packet included session key
-                 *       encrypted by AES sha256(password) and real session id in sessionId
+                 *       and player profile encrypted by AES sha256(password) and real session id in sessionId
                  * 4. Future will use this session key to en/decrypt data
                  */
                 // Get user key
@@ -39,8 +39,9 @@ class LoginServiceListener: ServiceListener(7220) {
 
                         // Create reply packet
                         val replyPacket = PacketUtils.getReplyPacketFor(packet)
-                        replyPacket.sign = Utils.getSign(session.key)
-                        replyPacket.data = aes.encrypt(session.key)
+                        val replyData =  session.key+","+Utils.getGson().toJson(session.playerProfile)
+                        replyPacket.sign = Utils.getSign(replyData)
+                        replyPacket.data = aes.encrypt(replyData)
                         replyPacket.request = Request.LOGIN
                         replyPacket.sessionId = session.id
                         send(info, replyPacket)
