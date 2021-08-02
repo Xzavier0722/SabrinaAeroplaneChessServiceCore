@@ -6,7 +6,9 @@ import java.net.DatagramPacket
 abstract class ServiceListener(port: Int) {
 
     private val point: SocketPoint = SocketPoint(port) { onReceive(it) }
-    private val processingPackets = HashMap<String, HandlingDatagramPacket>()
+    private val incomingPackets = HashMap<String, HandlingDatagramPacket>()
+    private val outgoingPackets = HashMap<String, HandlingDatagramPacket>()
+
     @Volatile private var seq = 0
 
     init {
@@ -16,7 +18,7 @@ abstract class ServiceListener(port: Int) {
     private fun onReceive(packet: DatagramPacket) {
         val info = InetPointInfo.get(packet)
         val infoStr = info.toString()
-        var handlingPacket = processingPackets[infoStr]
+        var handlingPacket = incomingPackets[infoStr]
         val data = packet.data
 
         if (handlingPacket == null) {
@@ -31,7 +33,7 @@ abstract class ServiceListener(port: Int) {
                     return
                 }
             }
-            processingPackets[infoStr] = handlingPacket
+            incomingPackets[infoStr] = handlingPacket
         } else {
             handlingPacket.accept(data)
             if (handlingPacket.isCompleted) {
@@ -46,11 +48,11 @@ abstract class ServiceListener(port: Int) {
         val request = packet.request
         when (request) {
             Request.CONFIRM -> {
-                processingPackets.remove(info.toString())
+                outgoingPackets.remove(info.toString())
                 return
             }
             Request.RESEND -> {
-                val handlingPacket = processingPackets[info.toString()]
+                val handlingPacket = outgoingPackets[info.toString()]
                 if (handlingPacket == null) {
                     send(info, PacketUtils.getErrorPacket(packet))
                 } else {
@@ -67,6 +69,7 @@ abstract class ServiceListener(port: Int) {
         }
 
         onReceive(packet, info)
+        incomingPackets.remove(info.toString())
         // Send confirm
         if (request.requireConfirm()) {
             send(info, PacketUtils.getConfirmPacket(packet))
@@ -84,7 +87,7 @@ abstract class ServiceListener(port: Int) {
         }
 
         if (packet.request.requireConfirm()) {
-            processingPackets[info.toString()] = handlingPacket
+            outgoingPackets[info.toString()] = handlingPacket
         }
     }
 
