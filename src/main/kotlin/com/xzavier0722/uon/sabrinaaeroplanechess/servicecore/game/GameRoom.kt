@@ -108,4 +108,10 @@ class GameRoom(val code: String) {
         return 1+random.nextInt(6)
     }
 
+    fun destroy() {
+        players.keys.forEach {
+            cache.remove(it)
+        }
+    }
+
 }

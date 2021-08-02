@@ -158,8 +158,8 @@ class GameServiceListener : ServiceListener(7221){
                         }
                         "pieceSelected" -> {
                             /**
-                             * Turn start request:
-                             * 1. Client sends turn start request with data "pieceSelected,piece id"
+                             * Piece selected request:
+                             * 1. Client sends piece selected request with data "pieceSelected,piece id"
                              * 2. Server sends "turnStart,dice number" to all room members
                              */
                             println("Player "+session.playerProfile.uuid+" piece selected "+request[1])
@@ -168,11 +168,12 @@ class GameServiceListener : ServiceListener(7221){
                         }
                         "gameEnd" -> {
                             /**
-                             * Turn start request:
-                             * 1. Client sends turn start request with data "turnStart"
+                             * Game end request:
+                             * 1. Client sends game end request with data "ganeEnd"
                              * 2. Server will not reply anything
                              */
                             println("Room "+room.code+" game ended")
+                            room.destroy()
                             gameRooms.remove(roomId)
                             return
                         }
