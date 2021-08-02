@@ -16,7 +16,7 @@ class DataStorage(private val dataSource: DataSource) {
         dataSource.execute(
             "CREATE TABLE IF NOT EXISTS PlayerProfile (" +
                     "UUID CHAR(36) NOT NULL," +
-                    "Name TEXT NOT NULL" +
+                    "Name TEXT NOT NULL," +
                     "PlayCount INT NOT NULL," +
                     "Wins INT NOT NULL," +
                     "Key TEXT NOT NULL);"
@@ -80,7 +80,7 @@ class DataStorage(private val dataSource: DataSource) {
         if (uuidCache.containsKey(name)) {
             return true
         }
-        val result = dataSource.request("SELECT * FROM PlayerProfile WHERE Name = '$name'")
+        val result = dataSource.request("SELECT * FROM PlayerProfile WHERE Name = '${Utils.base64(name)}';")
         if (result.isNotEmpty()) {
             val data = result[0]
             val uuid = data["UUID"]!!
@@ -97,7 +97,7 @@ class DataStorage(private val dataSource: DataSource) {
         if (profileCache.containsKey(uuid)) {
             return false
         }
-        val result = dataSource.request("SELECT * FROM PlayerProfile WHERE UUID = '$uuid'")
+        val result = dataSource.request("SELECT * FROM PlayerProfile WHERE UUID = '$uuid';")
         if (result.isNotEmpty()) {
             val data = result[0]
             val uuid = data["UUID"]!!
