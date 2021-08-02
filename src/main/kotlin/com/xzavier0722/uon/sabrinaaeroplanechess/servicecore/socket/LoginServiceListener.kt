@@ -24,7 +24,7 @@ class LoginServiceListener: ServiceListener(7220) {
                  * 4. Future will use this session key to en/decrypt data
                  */
                 // Get user key
-                val name = String(Utils.debase64(packet.sessionId))
+                val name = packet.sessionId
                 val key = DataStorage.getUserKey(name)
                 if (key.isPresent) {
                     val aes = AES(Utils.debase64(key.get()))
@@ -50,6 +50,14 @@ class LoginServiceListener: ServiceListener(7220) {
                 send(info, PacketUtils.getErrorPacket(packet))
             }
             Request.REGISTER -> {
+                /**
+                 * Register process:
+                 * 1. Client send data formatted as "base64(username),sha256(password)" encrypted by AES
+                 *      with key "packet.timestamp + a random string" and put the random string into packet.sessionId
+                 * 2. Server check name and register
+                 * 3. If success, a register request with plaintext uuid in data will be sent back to the client,
+                 *      else an error packet or no response
+                 */
                 val key = Utils.base64(Utils.sha256(packet.timestamp.toString()+packet.sessionId))
                 val aes = AES(key)
                 val data = aes.decrypt(packet.data)
@@ -58,7 +66,7 @@ class LoginServiceListener: ServiceListener(7220) {
                     val userInfo = data.split(",")
                     // Check if exists
                     if (!DataStorage.isNameExists(userInfo[0])) {
-                        val profile = PlayerProfile(userInfo[0])
+                        val profile = PlayerProfile(String(Utils.debase64(userInfo[0])))
                         DataStorage.register(profile, userInfo[1])
 
                         println("Player "+profile.uuid+" register successful")

@@ -56,19 +56,20 @@ class DataStorage(private val dataSource: DataSource) {
     }
 
     fun register(player: PlayerProfile, key: String) {
-        if (isNameExists(player.name)) {
+        val nameBase64 = Utils.base64(player.name)
+        if (isNameExists(nameBase64)) {
             throw IllegalArgumentException("The name already exists!")
         }
         val uuid = player.uuid.toString()
         dataSource.execute(
             "INSERT INTO PlayerProfile VALUES (" +
                 "'$uuid'," +
-                "'${Utils.base64(player.name)}'," +
+                "'$nameBase64'," +
                 "${player.playCount}," +
                 "${player.wins},'" + key + "');"
         )
         profileCache[uuid] = player
-        uuidCache[player.name] = uuid
+        uuidCache[nameBase64] = uuid
         keyCache[uuid] = key
     }
 
@@ -80,7 +81,7 @@ class DataStorage(private val dataSource: DataSource) {
         if (uuidCache.containsKey(name)) {
             return true
         }
-        val result = dataSource.request("SELECT * FROM PlayerProfile WHERE Name = '${Utils.base64(name)}';")
+        val result = dataSource.request("SELECT * FROM PlayerProfile WHERE Name = '$name';")
         if (result.isNotEmpty()) {
             val data = result[0]
             val uuid = data["UUID"]!!
@@ -104,7 +105,7 @@ class DataStorage(private val dataSource: DataSource) {
             val profile = PlayerProfile(UUID.fromString(uuid), String(Utils.debase64(data["Name"])), data["PlayCount"]!!.toInt(), data["Wins"]!!.toInt())
             profileCache[uuid] = profile
             keyCache[uuid] = data["Key"]!!
-            uuidCache[profile.name] = uuid
+            uuidCache[data["Name"]!!] = uuid
             return true
         }
         return false
