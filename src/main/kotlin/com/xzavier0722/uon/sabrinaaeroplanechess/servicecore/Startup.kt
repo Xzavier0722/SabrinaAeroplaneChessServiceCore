@@ -15,6 +15,7 @@ lateinit var GameServiceListener: GameServiceListener
 
 fun main() {
 
+    SQLiteSource.start()
     println("Starting login service at 7220")
     LoginServiceListener = LoginServiceListener()
 

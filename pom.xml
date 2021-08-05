@@ -119,7 +119,7 @@
         <dependency>
             <groupId>com.github.Xzavier0722</groupId>
             <artifactId>SabrinaCommonLib</artifactId>
-            <version>09f31873c4ba83b417692201f238e659c0b20350</version>
+            <version>5f70445a6de9b2a543a51783c21f23052dda6a81</version>
             <scope>compile</scope>
         </dependency>
 
