@@ -69,15 +69,25 @@ class GameServiceListener : ServiceListener(7221){
                         /**
                          * Join room request:
                          * 1. Client sends join request with data formatted by: "join,room code"
-                         * 2. Server replies with data "0" (success) or "-1" (failed)
+                         * 2. Server replies with data "0,base64(playerProfile1),base64(playerProfile2),..." (success) or "-1" (failed)
                          */
                         val room = gameRooms[request[1]]
                         val reply = PacketUtils.getReplyPacketFor(packet)
                         reply.request = Request.GAME_ROOM
-                        if (room != null && room.addPlayer(session)) {
-                            println("Player "+session.playerProfile.uuid+" joined room "+room.code)
-                            reply.data = session.aes.encrypt("0")
-                            reply.sign = Utils.getSign("0")
+                        if (room != null) {
+                            val list = room.getPlayerList()
+                            if (room.addPlayer(session)) {
+                                println("Player "+session.playerProfile.uuid+" joined room "+room.code)
+                                val sb = StringBuilder()
+                                sb.append("0")
+                                for (each in list) {
+                                    sb.append(",")
+                                    sb.append(Utils.base64(Utils.getGson().toJson(each)))
+                                }
+                                val reData = sb.toString()
+                                reply.data = session.aes.encrypt(reData)
+                                reply.sign = Utils.getSign(reData)
+                            }
                         } else {
                             val msg = "-1"
                             reply.data = session.aes.encrypt(msg)
