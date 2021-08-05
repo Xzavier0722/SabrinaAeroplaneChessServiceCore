@@ -38,7 +38,7 @@ class SQLiteSource(path: String, name: String): QueuedExecutionThread(), DataSou
                     val meta = resultSet.metaData
 
                     // Traverse each column
-                    for (i in 0 until meta.columnCount) {
+                    for (i in 1 .. meta.columnCount) {
                         row[meta.getColumnLabel(i)] = resultSet.getString(i)
                     }
 

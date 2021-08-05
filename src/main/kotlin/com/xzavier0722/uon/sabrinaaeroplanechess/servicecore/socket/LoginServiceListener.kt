@@ -39,7 +39,7 @@ class LoginServiceListener: ServiceListener(7220) {
 
                         // Create reply packet
                         val replyPacket = PacketUtils.getReplyPacketFor(packet)
-                        val replyData =  session.key+","+Utils.getGson().toJson(session.playerProfile)
+                        val replyData =  session.key+","+Utils.base64(Utils.getGson().toJson(session.playerProfile))
                         replyPacket.sign = Utils.getSign(replyData)
                         replyPacket.data = aes.encrypt(replyData)
                         replyPacket.request = Request.LOGIN
