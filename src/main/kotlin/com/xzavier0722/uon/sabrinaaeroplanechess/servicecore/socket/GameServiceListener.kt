@@ -124,7 +124,7 @@ class GameServiceListener : ServiceListener(7221){
                         val room = gameRooms[roomId?:"NULL"]
                         if (room != null && session.id == room.owner) {
                             println("Room "+room.code+" started game")
-                            room.sendToAll("start,"+request[1])
+                            room.sendToAll(data)
                             return
                         }
                     }
