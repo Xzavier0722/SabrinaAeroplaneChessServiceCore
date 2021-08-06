@@ -34,8 +34,7 @@ class GameRoom(val code: String) {
             return false
         }
         players.values.forEach {
-            val packet = PacketUtils.getGameRoomUpdatePacket(session, false)
-            packet.sessionId = it.id
+            val packet = PacketUtils.getGameRoomUpdatePacket(session.playerProfile, false, it)
             GameServiceListener.send(it.inetPoint, packet)
         }
         players[session.id] = session
@@ -55,7 +54,7 @@ class GameRoom(val code: String) {
         cache.remove(session.id)
         if (removed != null && players.size > 0) {
             players.values.forEach {
-                val packet = PacketUtils.getGameRoomUpdatePacket(removed, true)
+                val packet = PacketUtils.getGameRoomUpdatePacket(removed.playerProfile, true, it)
                 packet.sessionId = it.id
                 GameServiceListener.send(it.inetPoint, packet)
             }

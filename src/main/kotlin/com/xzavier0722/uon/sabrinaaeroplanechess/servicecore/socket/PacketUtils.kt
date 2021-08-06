@@ -32,13 +32,14 @@ object PacketUtils {
         return re
     }
 
-    fun getGameRoomUpdatePacket(session: Session, isRemove: Boolean) : Packet {
-        val data = (if (isRemove) "remove," else "add,") + Utils.base64(Utils.getGson().toJson(session.playerProfile))
+    fun getGameRoomUpdatePacket(who: PlayerProfile, isRemove: Boolean, target: Session) : Packet {
+        val data = (if (isRemove) "remove," else "add,") + Utils.base64(Utils.getGson().toJson(who))
 
         val re = Packet()
+        re.sessionId = target.id
         re.request = Request.GAME_ROOM
         re.sign = Utils.getSign(data)
-        re.data = session.aes.encrypt(data)
+        re.data = target.aes.encrypt(data)
         re.id = PacketId++
 
         return re
