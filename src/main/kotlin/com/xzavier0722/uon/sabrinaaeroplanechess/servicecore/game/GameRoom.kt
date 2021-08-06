@@ -14,6 +14,7 @@ import kotlin.collections.HashMap
 
 class GameRoom(val code: String) {
 
+    private val uuidCache = HashMap<String, String>()
     private val players = HashMap<String, Session>()
     lateinit var owner: String
     private val random = Random()
@@ -37,12 +38,23 @@ class GameRoom(val code: String) {
             val packet = PacketUtils.getGameRoomUpdatePacket(session.playerProfile, false, it)
             GameServiceListener.send(it.inetPoint, packet)
         }
+        uuidCache[session.playerProfile.uuid.toString()] = session.id
         players[session.id] = session
         cache[session.id] = code
         return true
     }
 
-    fun removePlayer(session: Session) : Boolean{
+    fun kickPlayer(uuid: String) : Boolean {
+        players[uuidCache[uuid]]?.let {
+            cache.remove(it.id)
+            uuidCache.remove(it.playerProfile.uuid.toString())
+            players.remove(it.id)
+            return true
+        }
+        return false
+    }
+
+    fun removePlayer(session: Session) : Boolean {
         if (session.id == owner) {
             players.remove(owner)
             players.keys.forEach {
@@ -50,13 +62,15 @@ class GameRoom(val code: String) {
             }
             return true
         }
-        val removed = players.remove(session.id)
-        cache.remove(session.id)
-        if (removed != null && players.size > 0) {
-            players.values.forEach {
-                val packet = PacketUtils.getGameRoomUpdatePacket(removed.playerProfile, true, it)
-                packet.sessionId = it.id
-                GameServiceListener.send(it.inetPoint, packet)
+        players.remove(session.id)?.let { removed ->
+            cache.remove(session.id)
+            uuidCache.remove(session.playerProfile.uuid.toString())
+            if (players.isNotEmpty()) {
+                players.values.forEach {
+                    val packet = PacketUtils.getGameRoomUpdatePacket(removed.playerProfile, true, it)
+                    packet.sessionId = it.id
+                    GameServiceListener.send(it.inetPoint, packet)
+                }
             }
         }
         return false

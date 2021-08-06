@@ -102,13 +102,11 @@ class GameServiceListener : ServiceListener(7221){
                          * 1. Client sends leave request with data formatted by: "leave"
                          * 2. Server sends a game room update packet to all room members
                          */
-                        val roomId = GameRoom.getRoomCode(session.id)
-                        val room = gameRooms[roomId?:"NULL"]
-                        if (room != null) {
-                            println("Player "+session.playerProfile.uuid+" leaved room "+room.code)
-                            if (room.removePlayer(session)) {
+                        gameRooms[GameRoom.getRoomCode(session.id)]?.let {
+                            println("Player "+session.playerProfile.uuid+" leaved room "+it.code)
+                            if (it.removePlayer(session)) {
                                 // The host leave, destroy the room
-                                room.kickAll()
+                                it.kickAll()
                                 gameRooms.remove(request[1])
                             }
                             return
@@ -139,6 +137,7 @@ class GameServiceListener : ServiceListener(7221){
                         if (room != null && session.id == room.owner) {
                             println("Player "+session.playerProfile.uuid+" kicked room "+room.code)
                             room.sendToAll("kick,"+request[1])
+                            room.kickPlayer(request[1])
                             return
                         }
                     }
