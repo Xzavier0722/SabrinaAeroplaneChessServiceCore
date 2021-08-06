@@ -5,11 +5,14 @@ import com.xzavier0722.uon.sabrinaaeroplanechess.common.game.PlayerProfile
 import com.xzavier0722.uon.sabrinaaeroplanechess.common.networking.InetPointInfo
 import com.xzavier0722.uon.sabrinaaeroplanechess.common.networking.Packet
 import com.xzavier0722.uon.sabrinaaeroplanechess.common.networking.Request
+import com.xzavier0722.uon.sabrinaaeroplanechess.common.networking.Session
 import com.xzavier0722.uon.sabrinaaeroplanechess.common.security.AES
 import com.xzavier0722.uon.sabrinaaeroplanechess.servicecore.DataStorage
 import com.xzavier0722.uon.sabrinaaeroplanechess.servicecore.SessionManager
 
 class LoginServiceListener: ServiceListener(7220) {
+
+    private val loginCache = HashMap<String, Session>()
 
     override fun onReceive(packet: Packet, info: InetPointInfo) {
 
@@ -30,9 +33,16 @@ class LoginServiceListener: ServiceListener(7220) {
                     val aes = AES(Utils.debase64(key.get()))
                     val data = aes.decrypt(packet.data)
                     if (data == "Login") {
-                        // Login successful, create session
-                        val session = SessionManager.createSession()
-                        session.playerProfile = DataStorage.getPlayerProfileByName(name).get()
+                        // Login successful, create or get session
+                        val profile = DataStorage.getPlayerProfileByName(name).get()
+                        val uuid = profile.uuid.toString()
+                        var session = loginCache[uuid]
+                        if (session == null) {
+                            session = SessionManager.createSession()!!
+                            session.playerProfile = profile
+                            loginCache[uuid] = session
+                        }
+
                         session.inetPoint = info
 
                         println("Player "+session.playerProfile.uuid+" login successful")
