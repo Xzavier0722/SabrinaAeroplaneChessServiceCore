@@ -115,8 +115,8 @@ class GameServiceListener : ServiceListener(7221){
                     "start" -> {
                         /**
                          * Start game request:
-                         * 1. Room owner send start request with data formatted: "start,uuids order by flag"
-                         * 2. Server send game start packet to all room members
+                         * 1. Room owner send start request with data formatted: "start,data"
+                         * 2. Server send game start packet with data received to all room members
                          */
                         val roomId = GameRoom.getRoomCode(session.id)
                         val room = gameRooms[roomId?:"NULL"]
